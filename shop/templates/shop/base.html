@@ -1,0 +1,70 @@
+{% load static %}
+{% load bootstrap4 %}
+{% load i18n %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <title>{% block title %}{% trans 'My shop' %}{% endblock title %}</title>
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery='full' %}
+</head>
+<body>
+    {% if messages %}
+        <ul class="alert alert-dismissible messages fade show">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">
+                    {{ message|safe }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">x</button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div id="header">
+        <a style="text-decoration: none" href="/" class="logo">{% trans 'My shop' %}</a>
+        <form action="{% url 'set_language' %}" method="post" class="form-control-sm language">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ redirect_to }}">
+            <label>
+                <select name="language">
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    {% get_language_info_list for LANGUAGES as languages %}
+                    {% for language in languages %}
+                        <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %}selected{% endif %}>
+                            {{ language.name_local }} ({{ language.code }})
+                        </option>{
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="btn btn-secondary">{% trans 'Go' %}</button>
+        </form>
+    </div>
+    <div id="subheader">
+         <div class="cart">
+             {% with total_items=cart|length %}
+               {% if cart|length > 0%}
+                   {% trans 'You cart' %}:
+                <a class="btn btn-outline-primary" href="{% url 'cart:cart_detail' %}">
+                    {% blocktrans with total_items_plural=total_items|pluralize total_price=cart.get_total_price %}
+                        {{ total_items }} item{{ total_items_plural }},
+                        ${{ total_price }}
+                    {% endblocktrans %}
+                </a>
+             {% else %}
+                   <a class="btn btn-outline-primary" href="{% url 'cart:cart_detail' %}">{% trans 'Your cart is empty' %}</a>
+             {% endif %}
+         {% endwith %}
+         </div>
+     </div>
+    <div id="content">
+        {% block content %}{% endblock content %}
+    </div>
+
+</body>
+</html>
